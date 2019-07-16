@@ -1,0 +1,10 @@
+[package]
+name = "wxbuild-rs"
+version = "0.1.0"
+authors = ["sergej jurecko <sergej.jurecko@gmail.com>"]
+edition = "2018"
+
+
+[dependencies]
+cc = {version = "1"} # features = ["parallel"]
+
