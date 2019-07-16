@@ -35,13 +35,9 @@ pub fn build(folder: &str, add_start: bool) -> std::io::Result<()> {
     let out_dir = Path::new(&out_dir_s);
     let static_lib_path = out_dir.join("libwxrs.a");
     let wxcfg = env::var("WX_CONFIG").unwrap_or("wx-config".to_owned());
+    let wxdir = env::var("WX_DIR").unwrap_or("".to_owned());
 
     if is_modified(&static_lib_path, folder).unwrap_or(true) {
-        let cxx = Command::new(wxcfg.as_str())
-            .args(&["--cxxflags"])
-            .output()
-            .expect("failed to execute wx-config");
-
         let mut cc = Build::new();
         for entry in fs::read_dir(folder)? {
             let entry = entry?;
@@ -51,10 +47,21 @@ pub fn build(folder: &str, add_start: bool) -> std::io::Result<()> {
                 cc.file(&path);
             }
         }
-        let cxx = std::str::from_utf8(cxx.stdout.as_ref()).unwrap();
-
-        for word in cxx.split_whitespace() {
-            cc.flag(word);
+        if let Ok(cxx) = Command::new(wxcfg.as_str()).args(&["--cxxflags"]).output() {
+            let cxx = std::str::from_utf8(cxx.stdout.as_ref()).unwrap();
+            for word in cxx.split_whitespace() {
+                cc.flag(word);
+            }
+        } else if wxdir.len() > 0 && target.contains("msvc") {
+            cc.flag("-D__WXMSW__");
+            cc.flag("-D_UNICODE");
+            cc.flag("-DNDEBUG");
+            cc.flag("-D__WXMSW__");
+            cc.include(Path::new(&wxdir).join("include"));
+            cc.include(Path::new(&wxdir).join("include").join("msvc"));
+        // cc.include(Path::new(&wxdir).join("lib").join("vc_x64_lib").join("mswu"));
+        } else {
+            panic!("No WX_CONFIG or WX_DIR set");
         }
         // println!("{}",libs);
         cc.cpp(true);
@@ -100,6 +107,28 @@ pub fn build(folder: &str, add_start: bool) -> std::io::Result<()> {
 
     println!("cargo:rustc-link-search=native={}", out_dir_s);
     println!("cargo:rustc-link-lib=wxrs");
+
+    if wxdir.len() > 0 && target.contains("msvc") {
+        println!("cargo:rustc-link-search=native={}\\lib\\vc_x64_lib", wxdir);
+        // println!(
+        //     "cargo:rustc-link-lib=static={}",
+        //     part.trim_start_matches("-l")
+        // );
+        let dir_iter = fs::read_dir(Path::new(&wxdir).join("lib").join("vc_x64_lib"))?;
+        for entry in dir_iter {
+            if let Ok(entry) = entry {
+                let path = entry.path();
+                let extension = path.extension().and_then(OsStr::to_str).unwrap_or("");
+                let file_stem = path.file_stem().and_then(OsStr::to_str).unwrap_or("");
+                if extension == "lib" {
+                    println!(
+                        "cargo:rustc-link-lib=static={}",file_stem
+                    );
+                }
+            }
+        }
+        return Ok(());
+    }
 
     let libs = Command::new(wxcfg.as_str())
         .args(&["--libs"])
