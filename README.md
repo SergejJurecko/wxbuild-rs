@@ -12,6 +12,6 @@ wxbuild_rs:build("my_cpp_folder",true, "MyApp");
 
 Environment variables:
 
-WX_CONFIG - path to wx-config script, if not set it will require wx-config to be present in $PATH
+WX_CONFIG - path to wx-config script for non windows targets, if not set it will require wx-config to be present in $PATH
 
 WX_DIR - on windows, path to wxWidgets folder. It assumes it was compiled static for x64 with VC.
