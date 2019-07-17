@@ -1,5 +1,7 @@
 To compile your wxWidgets c++ code and link with wxWidgets in build.rs files.
 
+Supported targets: macos and x86_64-pc-windows-msvc
+
 ``` 
 // Will compile all cpp files in my_cpp_folder.
 // 
