@@ -69,9 +69,7 @@ pub fn build(folder: &str, add_start: bool, appname: &str) -> std::io::Result<()
         } else {
             panic!("No WX_CONFIG or WX_DIR set");
         }
-        // println!("{}",libs);
         cc.cpp(true);
-        // cc.cpp_link_stdlib("stdc++");
         if target.contains("darwin") {
             cc.flag("-mmacosx-version-min=10.12");
             cc.flag("-std=c++11");
@@ -107,10 +105,7 @@ pub fn build(folder: &str, add_start: bool, appname: &str) -> std::io::Result<()
             // #[link_name = "\u{1}_wx_start"]
         }
 
-        // cc.debug(false);
         cc.extra_warnings(false);
-        // cc.opt_level(2);
-        // cc.flag("-D__WXOSX_COCOA__");
         cc.compile("libwxrs.a");
     }
 

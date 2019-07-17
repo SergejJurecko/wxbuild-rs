@@ -6,6 +6,8 @@ edition = "2018"
 license = "MIT"
 keywords = ["gui", "ui"]
 categories    = ["GUI"]
+description = "Compile your wxWidgets c++ code and link with wxWidgets in build.rs files."
+repository = "https://github.com/SergejJurecko/wxbuild-rs"
 
 [dependencies]
 cc = {version = "1"} # features = ["parallel"]
