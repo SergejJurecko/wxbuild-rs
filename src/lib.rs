@@ -53,10 +53,8 @@ pub fn build(folder: &str, add_start: bool) -> std::io::Result<()> {
                 cc.flag(word);
             }
         } else if wxdir.len() > 0 && target.contains("msvc") {
-            cc.flag("-D__WXMSW__");
-            cc.flag("-D_UNICODE");
-            cc.flag("-DNDEBUG");
-            cc.flag("-D__WXMSW__");
+            cc.define("__WXMSW__", "1");
+            cc.define("_UNICODE", "1");
             cc.include(Path::new(&wxdir).join("include"));
             cc.include(Path::new(&wxdir).join("include").join("msvc"));
         // cc.include(Path::new(&wxdir).join("lib").join("vc_x64_lib").join("mswu"));
@@ -68,8 +66,10 @@ pub fn build(folder: &str, add_start: bool) -> std::io::Result<()> {
         // cc.cpp_link_stdlib("stdc++");
         if target.contains("darwin") {
             cc.flag("-mmacosx-version-min=10.12");
+            cc.flag("-std=c++11");
+        } else if target.contains("msvc") {
+            cc.flag("/EHsc");
         }
-        cc.flag("-std=c++11");
         if add_start {
             let start = out_dir.join("start.cpp");
             let mut file = fs::File::create(start.clone()).unwrap();
@@ -90,17 +90,17 @@ pub fn build(folder: &str, add_start: bool) -> std::io::Result<()> {
                     }
                 }
                 extern "C" {
-                    #[link_name = "\u{1}_wx_start"]
                     fn wx_start();
                 }
             "#,
             )
             .unwrap();
+            // #[link_name = "\u{1}_wx_start"]
         }
 
-        cc.debug(false);
+        // cc.debug(false);
         cc.extra_warnings(false);
-        cc.opt_level(2);
+        // cc.opt_level(2);
         // cc.flag("-D__WXOSX_COCOA__");
         cc.compile("libwxrs.a");
     }
@@ -121,9 +121,28 @@ pub fn build(folder: &str, add_start: bool) -> std::io::Result<()> {
                 let extension = path.extension().and_then(OsStr::to_str).unwrap_or("");
                 let file_stem = path.file_stem().and_then(OsStr::to_str).unwrap_or("");
                 if extension == "lib" {
-                    println!(
-                        "cargo:rustc-link-lib=static={}",file_stem
-                    );
+                    // if cfg!(debug_assertions) {
+                    //     if file_stem.starts_with("wxbase31ud") {
+                    //         println!("cargo:rustc-link-lib=static={}", file_stem);
+                    //     } else if file_stem.starts_with("wxbase31u") {
+                    //         continue;
+                    //     } else if file_stem.ends_with("d") {
+                    //         println!("cargo:rustc-link-lib=static={}", file_stem);
+                    //     }
+                    // } else {
+
+                    if file_stem.starts_with("wxmsw31ud") {
+                        continue;
+                    } else if file_stem.starts_with("wxbase31ud") {
+                        continue;
+                    } else if file_stem.starts_with("wxmsw31u") {
+                        println!("cargo:rustc-link-lib=static={}", file_stem);
+                    } else if file_stem.starts_with("wxbase31u") {
+                        println!("cargo:rustc-link-lib=static={}", file_stem);
+                    } else if !file_stem.ends_with("d") {
+                        println!("cargo:rustc-link-lib=static={}", file_stem);
+                    }
+                    // }
                 }
             }
         }
