@@ -1,7 +1,11 @@
 To compile your wxWidgets c++ code and link with wxWidgets in build.rs files.
 
 ``` 
-wxbuild_rs:build("my_cpp_folder",true);
+// Will compile all cpp files in my_cpp_folder.
+// 
+// MyApp is name of my class extending wxApp
+// 
+wxbuild_rs:build("my_cpp_folder",true, "MyApp");
 ``` 
 
 Environment variables:

@@ -1,9 +1,11 @@
 [package]
 name = "wxbuild-rs"
-version = "0.1.0"
-authors = ["sergej jurecko <sergej.jurecko@gmail.com>"]
+version = "1.0.0"
+authors = ["Sergej Jurecko <sergej.jurecko@gmail.com>"]
 edition = "2018"
-
+license = "MIT"
+keywords = ["gui", "ui"]
+categories    = ["GUI"]
 
 [dependencies]
 cc = {version = "1"} # features = ["parallel"]

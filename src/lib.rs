@@ -29,7 +29,14 @@ fn is_modified(static_lib_path: &PathBuf, folder: &str) -> std::io::Result<bool>
     Ok(false)
 }
 
-pub fn build(folder: &str, add_start: bool) -> std::io::Result<()> {
+/// Build all cpp files in specified folder and correctly link with wxWidgets.
+///
+/// If add_start is true:
+///
+/// - It will create a cpp file containing wxIMPLEMENT_APP_NO_MAIN(appname)
+/// - It will create wxffi.rs file you should include with: include!(concat!(env!("OUT_DIR"), "/wxffi.rs"))
+/// - wxffi.rs will contain function start() that will run your wx gui. This function will not return while GUI is active.
+pub fn build(folder: &str, add_start: bool, appname: &str) -> std::io::Result<()> {
     let target = env::var("TARGET").unwrap();
     let out_dir_s = std::env::var("OUT_DIR").unwrap();
     let out_dir = Path::new(&out_dir_s);
@@ -71,14 +78,15 @@ pub fn build(folder: &str, add_start: bool) -> std::io::Result<()> {
             cc.flag("/EHsc");
         }
         if add_start {
+            cc.include(folder);
             let start = out_dir.join("start.cpp");
             let mut file = fs::File::create(start.clone()).unwrap();
             use std::io::Write;
-            file.write(
-                br#"#include <wx/wx.h>
-                extern "C" { void wx_start() { char **argv = nullptr; int argc = 0; wxEntry(argc, argv); } }"#,
-            )
-            .unwrap();
+            let cpp = format!("#include <wx/wx.h>\n
+                #include \"{}.h\"
+                wxIMPLEMENT_APP_NO_MAIN({});
+                extern \"C\" {{ void wx_start() {{ char **argv = nullptr; int argc = 0; wxEntry(argc, argv); }} }}", appname.to_ascii_lowercase(), appname);
+            file.write(cpp.as_bytes()).unwrap();
             cc.file(start);
 
             let mut file = fs::File::create(&out_dir.join("wxffi.rs")).unwrap();
