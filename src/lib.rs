@@ -36,6 +36,7 @@ fn is_modified(static_lib_path: &PathBuf, folder: &str) -> std::io::Result<bool>
 /// - It will create a cpp file containing wxIMPLEMENT_APP_NO_MAIN(appname)
 /// - It will create wxffi.rs file you should include with: include!(concat!(env!("OUT_DIR"), "/wxffi.rs"))
 /// - wxffi.rs will contain function start() that will run your wx gui. This function will not return while GUI is active.
+/// - appname.h (all lowercase) must exist and have appname class declared.
 pub fn build(folder: &str, add_start: bool, appname: &str) -> std::io::Result<()> {
     let target = env::var("TARGET").unwrap();
     let out_dir_s = std::env::var("OUT_DIR").unwrap();
