@@ -8,6 +8,7 @@ keywords = ["gui", "ui"]
 categories    = ["gui"]
 description = "Compile your wxWidgets c++ code and link with wxWidgets in build.rs files."
 repository = "https://github.com/SergejJurecko/wxbuild-rs"
+documentation = "https://docs.rs/wxbuild-rs"
 
 [dependencies]
 cc = {version = "1"} # features = ["parallel"]
