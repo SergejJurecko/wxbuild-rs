@@ -5,7 +5,7 @@ authors = ["Sergej Jurecko <sergej.jurecko@gmail.com>"]
 edition = "2018"
 license = "MIT"
 keywords = ["gui", "ui"]
-categories    = ["GUI"]
+categories    = ["gui"]
 description = "Compile your wxWidgets c++ code and link with wxWidgets in build.rs files."
 repository = "https://github.com/SergejJurecko/wxbuild-rs"
 
