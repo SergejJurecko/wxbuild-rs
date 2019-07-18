@@ -84,20 +84,33 @@ pub fn build(folder: &str, add_start: bool, appname: &str) -> std::io::Result<()
             let cpp = format!("#include <wx/wx.h>\n
                 #include \"{}.h\"
                 wxIMPLEMENT_APP_NO_MAIN({});
-                extern \"C\" {{ void wx_start() {{ char **argv = nullptr; int argc = 0; wxEntry(argc, argv); }} }}", appname.to_ascii_lowercase(), appname);
+                void *g_rsdata = NULL;
+                extern \"C\" {{ void wx_start(void* userdata) {{ char **argv = nullptr; int argc = 0; g_rsdata = userdata; wxEntry(argc, argv); }} }}", appname.to_ascii_lowercase(), appname);
             file.write(cpp.as_bytes()).unwrap();
             cc.file(start);
 
             let mut file = fs::File::create(&out_dir.join("wxffi.rs")).unwrap();
             file.write(
                 br#"
-                pub fn start() {
+                pub fn start("#,
+            )
+            .unwrap();
+            file.write(format!("userdata: &mut {}", appname).as_bytes())
+                .unwrap();
+            file.write(
+                br#") {
                     unsafe {
-                        wx_start();
+                        wx_start(userdata as *mut _ as _);
                     }
                 }
                 extern "C" {
-                    fn wx_start();
+                    fn wx_start( "#,
+            )
+            .unwrap();
+            file.write(format!("userdata: *mut std::os::raw::c_void").as_bytes())
+                .unwrap();
+            file.write(
+                br#" );
                 }
             "#,
             )
