@@ -92,7 +92,7 @@ pub fn build(folder: &str, add_start: bool, appname: &str) -> std::io::Result<()
             let mut file = fs::File::create(&out_dir.join("wxffi.rs")).unwrap();
             file.write(
                 br#"
-                pub fn start("#,
+                fn start("#,
             )
             .unwrap();
             file.write(format!("userdata: &mut {}", appname).as_bytes())
