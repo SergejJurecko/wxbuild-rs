@@ -44,8 +44,14 @@ pub fn build(folder: &str, add_start: bool, appname: &str) -> std::io::Result<()
     let static_lib_path = out_dir.join("libwxrs.a");
     let wxcfg = env::var("WX_CONFIG").unwrap_or("wx-config".to_owned());
     let wxdir = env::var("WX_DIR").unwrap_or("".to_owned());
+    let start_cpp = out_dir.join("start.cpp");
+    let wxffi = out_dir.join("wxffi.rs");
 
-    if is_modified(&static_lib_path, folder).unwrap_or(true) {
+    if is_modified(&static_lib_path, folder).unwrap_or(true)
+        || (add_start
+            && (is_modified(&start_cpp, folder).unwrap_or(true)
+                || is_modified(&wxffi, folder).unwrap_or(true)))
+    {
         let mut cc = Build::new();
         for entry in fs::read_dir(folder)? {
             let entry = entry?;
@@ -78,8 +84,7 @@ pub fn build(folder: &str, add_start: bool, appname: &str) -> std::io::Result<()
         }
         if add_start {
             cc.include(folder);
-            let start = out_dir.join("start.cpp");
-            let mut file = fs::File::create(start.clone()).unwrap();
+            let mut file = fs::File::create(&start_cpp).unwrap();
             use std::io::Write;
             let cpp = format!("#include <wx/wx.h>\n
                 #include \"{}.h\"
@@ -87,9 +92,9 @@ pub fn build(folder: &str, add_start: bool, appname: &str) -> std::io::Result<()
                 void *g_rsdata = NULL;
                 extern \"C\" {{ void wx_start(void* userdata) {{ char **argv = nullptr; int argc = 0; g_rsdata = userdata; wxEntry(argc, argv); }} }}", appname.to_ascii_lowercase(), appname);
             file.write(cpp.as_bytes()).unwrap();
-            cc.file(start);
+            cc.file(start_cpp);
 
-            let mut file = fs::File::create(&out_dir.join("wxffi.rs")).unwrap();
+            let mut file = fs::File::create(&wxffi).unwrap();
             file.write(
                 br#"
                 fn start("#,
